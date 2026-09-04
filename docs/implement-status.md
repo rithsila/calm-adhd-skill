@@ -20,7 +20,7 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | CLI installer (PRD §5) | ✅ Done |
 | Local CLI testing | ✅ Done |
 | Editor testing (PRD §6) | ⬜ Not started |
-| Repo + license | 🟡 Partly done |
+| Repo + license | 🟡 Partly done (git init ✅, license ⬜) |
 | npm publish | ⬜ Not started |
 
 ---
@@ -47,6 +47,9 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 - ✅ `.gitignore` — ignores `node_modules/` and the CLI's own local output
   (`.agents/`, `.continue/`, `.antigravity/`).
 - ✅ `docs/PRD.md`, `docs/implement-status.md`.
+- ✅ `git init` on branch `main` + initial commit (`919a168`, 13 files).
+  `.claude/settings.local.json` and the headroom state files are ignored as
+  per-machine state.
 
 ### 2.3 Skills (PRD §4)
 
@@ -118,8 +121,7 @@ Run in a throwaway directory, since the CLI writes to the working directory:
 
 | # | Task | Notes |
 | --- | --- | --- |
-| P4 | `git init`, first commit | Repo is not under version control yet. |
-| P5 | Push to a remote | Depends on P4 and the remote URL from P2. |
+| P5 | Push to a remote | Needs the remote URL from P2. |
 | P6 | Smoke-test script | Wrap the §2.5 checks as `npm test` so they are repeatable. Right now `npm test` only runs `--help`. |
 | P7 | CI workflow | Run the smoke test on push, on Node 18/20/22. |
 
