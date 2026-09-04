@@ -2,6 +2,15 @@
   "name": "calm-adhd-skills",
   "version": "0.1.0",
   "description": "Calm-ADHD Skills: a safe 3-step delivery flow and Blue Team defense slash commands for Zed, Antigravity, and VS Code / Continue.",
+  "author": "rithsila",
+  "homepage": "https://github.com/rithsila/calm-adhd-skill#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rithsila/calm-adhd-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rithsila/calm-adhd-skill/issues"
+  },
   "bin": {
     "calm-adhd-skills": "./bin/cli.js"
   },
