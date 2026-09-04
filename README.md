@@ -116,6 +116,14 @@ ls .agents/skills/       # check the files landed
 To edit a command, change the matching `skills/<name>/SKILL.md` and run the
 installer again.
 
+Run the tests before you push:
+
+```bash
+npm test
+```
+
+They exercise every flag in a temp directory and clean up after themselves.
+
 ---
 
 ## Layout
@@ -139,7 +147,7 @@ calm-adhd-skills/
 └── README.md
 ```
 
-Requires Node 16.7 or newer. No runtime dependencies.
+Requires Node 18 or newer. No runtime dependencies.
 
 ---
 

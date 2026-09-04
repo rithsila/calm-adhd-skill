@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: ['18', '20', '22', '24']
+        # The installer joins paths and falls back to USERPROFILE, so check the
+        # other platforms too — on one Node version to keep the matrix small.
+        include:
+          - os: macos-latest
+            node: '22'
+          - os: windows-latest
+            node: '22'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run smoke tests
+        run: npm test
+
+  pack:
+    name: Check the published tarball
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Pack
+        run: npm pack --dry-run
+
+      - name: Confirm every skill ships
+        shell: bash
+        run: |
+          npm pack --dry-run --json > pack.json
+          for skill in analyze implement verify defend-code audit-infra harden-network audit-logs; do
+            grep -q "skills/$skill/SKILL.md" pack.json || {
+              echo "::error::skills/$skill/SKILL.md is missing from the tarball"
+              exit 1
+            }
+          done
+          echo "All 7 skills are present in the tarball."

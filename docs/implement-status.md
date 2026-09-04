@@ -18,9 +18,10 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | Directory layout (PRD §3) | ✅ Done |
 | Skills / prompts (PRD §4) | ✅ Done |
 | CLI installer (PRD §5) | ✅ Done |
-| Local CLI testing | ✅ Done |
+| Local CLI testing | ✅ Done (10 automated smoke tests) |
 | Editor testing (PRD §6) | ⬜ Not started |
 | Repo + license | 🟡 Partly done (git init ✅, license ⬜) |
+| CI | ✅ Done (not yet run on a remote) |
 | npm publish | ⬜ Not started |
 
 ---
@@ -93,17 +94,36 @@ Extra behavior beyond the PRD:
 
 ### 2.5 Local verification
 
-Run in a throwaway directory, since the CLI writes to the working directory:
+- ✅ `test/smoke.js` — 10 tests, no dependencies (`node:assert` +
+  `node:child_process`). Each case runs in its own temp directory and cleans up,
+  so the suite never writes into the repo.
+- ✅ Wired to `npm test`.
+- ✅ Mutation-checked: breaking the Antigravity end marker and disabling the
+  unknown-flag guard each turned the suite red, so the assertions are real.
 
-| Check | Result |
+| Test | Covers |
 | --- | --- |
-| `--help` output | ✅ Pass |
-| Default install | ✅ 7 files under `.agents/skills/` |
-| `--continue` | ✅ 7 prompts, no filename collision |
-| `--antigravity` onto a file with existing user rules | ✅ Appended, rules kept |
-| Re-run `--antigravity` | ✅ Still 140 lines, 1 marker, no duplication |
-| `--global` (with `HOME` redirected to a sandbox) | ✅ Correct target path |
-| Unknown flag | ✅ Error, non-zero exit |
+| `--help` exits 0 and lists every command | Usage text |
+| `--version` prints the package version | Stays in sync with `package.json` |
+| Default install writes all skills | PRD §2 default |
+| `--project` matches the default | PRD §2 |
+| `--continue` writes one prompt per skill | The `SKILL.md` collision fix |
+| `--antigravity` appends, keeps user rules | Non-destructive append |
+| `--antigravity` is idempotent | Marker block replace-in-place |
+| `--global` targets `$HOME` | Path resolution, no stray cwd writes |
+| `--global --project --continue` | Flags combine |
+| Unknown flag exits non-zero | Fails without writing files |
+
+### 2.6 CI (P7)
+
+- ✅ `.github/workflows/ci.yml` — runs `npm test` on push to `main`, on every
+  pull request, and on manual dispatch.
+- ✅ Matrix: Node 18/20/22/24 on Ubuntu, plus Node 22 on macOS and Windows
+  (the installer joins paths and falls back to `USERPROFILE`, so Windows is
+  worth covering).
+- ✅ A `pack` job runs `npm pack --dry-run` and fails if any of the 7 skills is
+  missing from the tarball.
+- ⬜ Never actually executed — there is no remote yet (P5).
 
 ---
 
@@ -122,8 +142,6 @@ Run in a throwaway directory, since the CLI writes to the working directory:
 | # | Task | Notes |
 | --- | --- | --- |
 | P5 | Push to a remote | Needs the remote URL from P2. |
-| P6 | Smoke-test script | Wrap the §2.5 checks as `npm test` so they are repeatable. Right now `npm test` only runs `--help`. |
-| P7 | CI workflow | Run the smoke test on push, on Node 18/20/22. |
 
 ### 3.3 Real-editor testing (PRD §6) — none done yet
 
@@ -153,7 +171,19 @@ editor picks them up.
   `.continue/prompts/`, `.antigravity/rules.md`) is taken from the PRD, not from
   first-party editor docs. If a path is wrong, the install silently does nothing
   useful. Confirm before publishing.
-- **No automated tests.** The §2.5 checks were run by hand and are not yet
-  repeatable in CI (P6).
+- **CI is unproven.** The workflow is written and the suite passes locally, but
+  it has never run on a runner, so the YAML is unverified until P5 lands.
 - **PRD §5 drift.** The PRD keeps the minimal code sketch, with a note that the
   shipped CLI is fuller. If the CLI changes further, update that note.
+
+---
+
+## 5. Decisions log
+
+| Date | Decision | Reason |
+| --- | --- | --- |
+| 2026-09-04 | Product renamed `blue-skills` → `calm-adhd-skills` | Your call. Blue Team wording inside the prompts is kept, since that is the subject matter. |
+| 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
+| 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
+| 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | `engines.node` raised `>=16.7.0` → `>=18.0.0` | `fs.cpSync` needs 16.7, but Node 16 went EOL in 2023 and CI does not cover it. Claiming only what is tested. Revert if you need 16.x. |
