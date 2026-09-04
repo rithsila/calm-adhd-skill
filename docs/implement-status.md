@@ -16,7 +16,7 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | --- | --- |
 | Docs (PRD) | ✅ Done |
 | Directory layout (PRD §3) | ✅ Done |
-| Skills / prompts (PRD §4) | ✅ Done |
+| Skills / prompts (PRD §4) | ✅ Done (11 output rules + handoff) |
 | CLI installer (PRD §5) | ✅ Done |
 | Local CLI testing | ✅ Done (10 automated smoke tests) |
 | Install paths verified (P11) | ✅ Done |
@@ -116,7 +116,28 @@ Extra behavior beyond the PRD:
 | `--global --project --continue` | Flags combine |
 | Unknown flag exits non-zero | Fails without writing files |
 
-### 2.6 CI (P7)
+### 2.6 Output rules in every skill
+
+All 7 `SKILL.md` files end with the same block, byte-identical, enforced by a
+test so they cannot drift:
+
+1. Lead with the next action. Put it on line 1.
+2. Number multi-step work.
+3. Cap every list at 5 items.
+4. Use simple English. The reader is not a native speaker.
+5. Give time estimates in minutes. Never say "a bit" or "a while".
+6. Restate the current state every turn. Do not assume memory.
+7. Make wins visible. Name what works now.
+8. Report errors matter-of-factly. No drama, no apology.
+9. Cut tangents, history, and theory.
+10. No preamble. No recap. No closers.
+11. End with one concrete next step.
+
+Plus a **session handoff** rule: update `implement-status.md`, then print a
+copy-paste prompt for the next session. Rules 1-3 and 5-10 come from the
+`i-have-adhd` rule set; rule 4 and the handoff rule are the user's own.
+
+### 2.7 CI (P7)
 
 - ✅ `.github/workflows/ci.yml` — runs `npm test` on push to `main`, on every
   pull request, and on manual dispatch.
@@ -127,7 +148,7 @@ Extra behavior beyond the PRD:
   missing from the tarball.
 - ⬜ Never actually executed — there is no remote yet (P5).
 
-### 2.7 Install paths verified (P11)
+### 2.8 Install paths verified (P11)
 
 Checked against the editors' own documentation on 2026-09-04. This closed the
 biggest pre-publish risk, and found two wrong paths in the original PRD.
@@ -223,6 +244,7 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | Output block expanded to 11 rules + session handoff | The 6-bullet version was too soft. Adopted the `i-have-adhd` rule set, plus the user's own two: simple English for non-native readers, and a session handoff that saves tokens on resume. |
 | 2026-09-04 | Independent repo, not a fork of `ayghri/i-have-adhd` | Upstream is a different project (output shaping, 1 skill, no npx CLI). Forking would inherit 192 unrelated commits, a logo, 7 translations, and an eval harness. Credited as prior art in the README instead. |
 | 2026-09-04 | Shared output-style block added to all 7 skills | The name is calm-adhd, but the skills only said "simple English". The block makes the constraint concrete, and a test keeps all 7 byte-identical. |
 | 2026-09-04 | Broader host support deferred | Publish and prove the npx path first. Tracked in PRD §7.1. |

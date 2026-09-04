@@ -12,6 +12,26 @@ The package focuses on a safe 3-step delivery flow (`/analyze` → `/implement` 
 - **Audience:** Non-native English speakers.
 - **Format:** Short sentences, scannable bullet points, concrete code patches, and zero unnecessary fluff or academic jargon.
 
+Every `SKILL.md` ends with the same 11 output rules plus a session-handoff rule,
+byte-identical across all seven, enforced by a test:
+
+1. Lead with the next action. Put it on line 1.
+2. Number multi-step work.
+3. Cap every list at 5 items.
+4. Use simple English. The reader is not a native speaker.
+5. Give time estimates in minutes. Never say "a bit" or "a while".
+6. Restate the current state every turn. Do not assume memory.
+7. Make wins visible. Name what works now.
+8. Report errors matter-of-factly. No drama, no apology.
+9. Cut tangents, history, and theory.
+10. No preamble. No recap. No closers.
+11. End with one concrete next step.
+
+**Session handoff.** Each skill must update `implement-status.md` when the
+project has one, then print a short copy-paste prompt for the next session. This
+keeps long work resumable without re-reading the whole history, which saves
+tokens.
+
 ---
 
 ## 2. CLI Installer Specifications

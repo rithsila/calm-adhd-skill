@@ -10,9 +10,13 @@ Two things it gives you:
 2. **Blue Team defense commands** — `/defend-code`, `/audit-infra`,
    `/harden-network`, `/audit-logs`. Defensive fixes only, never exploits.
 
-Every skill answers in simple, short English. No jargon, no long essays. All
-seven carry the same output rules: the next action first, numbered steps, real
-time estimates, no tangents.
+Every skill answers in simple, short English. All seven end with the same 11
+output rules — next action on line 1, numbered steps, lists capped at 5, time
+estimates in minutes, no preamble, no recap, no closers.
+
+They also share a **session handoff** rule: update `implement-status.md`, then
+print a copy-paste prompt for the next session. Long work stays resumable
+without re-reading the whole history.
 
 ---
 

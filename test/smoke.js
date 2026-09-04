@@ -195,6 +195,7 @@ test('every skill carries the same output-style block', (dir) => {
     'utf8'
   );
   assert.ok(installed.includes('Output style:'), 'block lost during install');
+  assert.ok(installed.includes('Session handoff:'), 'handoff rule lost during install');
 });
 
 test('an unknown flag fails with a non-zero exit', (dir) => {
