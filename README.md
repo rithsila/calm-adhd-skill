@@ -30,10 +30,10 @@ npx calm-adhd-skills --global
 
 | Flag | What it does |
 | --- | --- |
-| `--project` | Default. Writes skills to `./.agents/skills/`. |
+| `--project` | Default. Writes skills to `./.agents/skills/`. Zed and Antigravity both read this. |
 | `--global` | Writes skills to `~/.agents/skills/`. |
-| `--antigravity` | Appends the rules to `./.antigravity/rules.md`. |
-| `--continue` | Writes prompts to `./.continue/prompts/`. |
+| `--antigravity` | Installs where Antigravity reads. Same as `--project`; with `--global`, `~/.gemini/config/skills/`. |
+| `--continue` | Writes prompts to `./.continue/prompts/`, marked `invokable: true`. |
 | `--help` | Show all options. |
 
 You can combine flags. `--global` only changes *where* things go, so
@@ -41,8 +41,8 @@ You can combine flags. `--global` only changes *where* things go, so
 every target you want: `--global --project --continue` installs both the skills
 and the prompts under your home directory.
 
-Re-running `--antigravity` replaces its own block in `rules.md`. Your own rules
-in that file are left alone.
+Installing twice is safe — it overwrites the skill files and touches nothing
+else.
 
 ---
 
@@ -98,8 +98,13 @@ Then check your work:
 
 ### Google Antigravity
 
-1. Run `npx calm-adhd-skills --antigravity`.
-2. In the prompt bar, type `/defend-code check our database connection file`.
+Antigravity reads `.agents/skills/` — the same path as Zed — so the default
+install already covers it.
+
+1. Run `npx calm-adhd-skills` (or `--global --antigravity` for every workspace).
+2. Ask for something matching a skill, e.g. `check our database connection file
+   for security bugs`. Antigravity chooses a skill from its description rather
+   than by slash command.
 3. The agent should return a safe code diff, not an exploit.
 
 ---

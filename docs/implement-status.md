@@ -19,6 +19,7 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | Skills / prompts (PRD §4) | ✅ Done |
 | CLI installer (PRD §5) | ✅ Done |
 | Local CLI testing | ✅ Done (10 automated smoke tests) |
+| Install paths verified (P11) | ✅ Done |
 | Editor testing (PRD §6) | ⬜ Not started |
 | Repo + license | 🟡 Partly done (git init ✅, license ⬜) |
 | CI | ✅ Done (not yet run on a remote) |
@@ -125,6 +126,37 @@ Extra behavior beyond the PRD:
   missing from the tarball.
 - ⬜ Never actually executed — there is no remote yet (P5).
 
+### 2.7 Install paths verified (P11)
+
+Checked against the editors' own documentation on 2026-09-04. This closed the
+biggest pre-publish risk, and found two wrong paths in the original PRD.
+
+| Target | PRD said | Docs say | Verdict |
+| --- | --- | --- | --- |
+| Zed, project | `./.agents/skills/` | `<worktree>/.agents/skills/` | ✅ Correct |
+| Zed, global | `~/.agents/skills/` | `~/.agents/skills` | ✅ Correct |
+| Antigravity, workspace | `./.antigravity/rules.md` | `.agents/skills/` | ❌ Fixed |
+| Antigravity, global | — | `~/.gemini/config/skills/` | ❌ Added |
+| Continue | `.continue/prompts/*.md` | needs `invokable: true` | ❌ Fixed |
+
+What changed in the code:
+
+- ✅ `--antigravity` no longer writes `.antigravity/rules.md`, a path that does
+  not exist. Antigravity reads `.agents/skills/` in the workspace — the same
+  path as Zed — so the flag now installs skills there, and to
+  `~/.gemini/config/skills/` when combined with `--global`.
+- ✅ The marker-block logic for `rules.md` was deleted along with it.
+- ✅ `--continue` now writes `invokable: true` into the frontmatter. Without it
+  Continue does not list the prompt as a slash command, so the old plain copy
+  installed seven files that would never have appeared.
+- ✅ Zed's own constraints check out: `name` matches each folder name, all names
+  fit `^[a-z0-9]+(-[a-z0-9]+)*$`, every description is well under 1024 bytes,
+  and each skill is a direct child of the skills root (no nesting).
+
+One behavior difference worth knowing: Antigravity selects skills by
+description, not by slash command, so `/defend-code` is a Zed and Continue
+gesture. In Antigravity you describe the task instead.
+
 ---
 
 ## 3. Pending
@@ -153,7 +185,6 @@ editor picks them up.
 | P8 | Test in Zed | `/` in the Agent panel lists all 7 commands; `/analyze src/auth.ts and I want to add rate limiting` returns a plan and edits nothing. |
 | P9 | Test in VS Code (Continue) | `/analyze` autocompletes in the chat panel after `--continue`. |
 | P10 | Test in Antigravity | `/defend-code check our database connection file` returns a safe diff, no exploit payload. |
-| P11 | Confirm the `.agents/skills/` convention | The PRD assumes Zed reads this path. Verify against current Zed docs before publishing. |
 
 ### 3.4 Release
 
@@ -167,10 +198,9 @@ editor picks them up.
 
 ## 4. Known risks
 
-- **P11 is the big one.** Every install path in the PRD (`.agents/skills/`,
-  `.continue/prompts/`, `.antigravity/rules.md`) is taken from the PRD, not from
-  first-party editor docs. If a path is wrong, the install silently does nothing
-  useful. Confirm before publishing.
+- ~~**P11 install paths.**~~ Resolved — see §2.7. Two of the four were wrong and
+  are now fixed. The remaining exposure is that the paths were confirmed from
+  documentation, not by running the editors (P8–P10).
 - **CI is unproven.** The workflow is written and the suite passes locally, but
   it has never run on a runner, so the YAML is unverified until P5 lands.
 - **PRD §5 drift.** The PRD keeps the minimal code sketch, with a note that the
@@ -186,4 +216,6 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | `--antigravity` repurposed from `.antigravity/rules.md` to `.agents/skills/` | The documented path does not exist. Antigravity reads `.agents/skills/`. Nothing was published under the old behavior. |
+| 2026-09-04 | `--continue` injects `invokable: true` | Continue does not surface a prompt as a slash command without it. |
 | 2026-09-04 | `engines.node` raised `>=16.7.0` → `>=18.0.0` | `fs.cpSync` needs 16.7, but Node 16 went EOL in 2023 and CI does not cover it. Claiming only what is tested. Revert if you need 16.x. |

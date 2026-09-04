@@ -93,43 +93,51 @@ test('--project is the same as the default', (dir) => {
   assert.deepStrictEqual(installed, SKILL_NAMES);
 });
 
-test('--continue writes one prompt per skill with no collision', (dir) => {
+test('--continue writes one invokable prompt per skill', (dir) => {
   const { status } = runCli(['--continue'], { cwd: dir });
   assert.strictEqual(status, 0);
-  const prompts = fs.readdirSync(path.join(dir, '.continue', 'prompts')).sort();
+
+  const promptDir = path.join(dir, '.continue', 'prompts');
+  const prompts = fs.readdirSync(promptDir).sort();
   assert.deepStrictEqual(prompts, SKILL_NAMES.map((name) => `${name}.md`));
+
+  for (const name of SKILL_NAMES) {
+    const content = fs.readFileSync(path.join(promptDir, `${name}.md`), 'utf8');
+    // Continue only lists a prompt as a slash command when this is set.
+    assert.ok(content.includes('invokable: true'), `${name}.md is not invokable`);
+    assert.ok(content.includes(`name: ${name}`), `${name}.md lost its name`);
+    assert.ok(content.trim().length > 60, `${name}.md lost its body`);
+  }
 });
 
-test('--antigravity appends and keeps the user rules', (dir) => {
-  const rules = path.join(dir, '.antigravity', 'rules.md');
-  fs.mkdirSync(path.dirname(rules), { recursive: true });
-  fs.writeFileSync(rules, '# My own rules\n\nAlways use tabs.\n');
-
+test('--antigravity installs skills where Antigravity reads them', (dir) => {
   const { status } = runCli(['--antigravity'], { cwd: dir });
   assert.strictEqual(status, 0);
-
-  const content = fs.readFileSync(rules, 'utf8');
-  assert.ok(content.includes('Always use tabs.'), 'user rules were lost');
-  assert.ok(content.includes('calm-adhd-skills:start'), 'missing start marker');
-  assert.ok(content.includes('calm-adhd-skills:end'), 'missing end marker');
   for (const name of SKILL_NAMES) {
-    assert.ok(content.includes(`## /${name}`), `rules are missing /${name}`);
+    assert.ok(
+      fs.existsSync(path.join(dir, '.agents', 'skills', name, 'SKILL.md')),
+      `missing ${name} in .agents/skills`
+    );
   }
-  assert.ok(!content.includes('---\nname:'), 'frontmatter was not stripped');
+  assert.ok(
+    !fs.existsSync(path.join(dir, '.antigravity')),
+    'wrote to .antigravity/, a path Antigravity does not read'
+  );
 });
 
-test('--antigravity is idempotent across re-runs', (dir) => {
-  const rules = path.join(dir, '.antigravity', 'rules.md');
+test('--global --antigravity targets ~/.gemini/config/skills', (dir) => {
+  const home = path.join(dir, 'fake-home');
+  fs.mkdirSync(home);
 
-  runCli(['--antigravity'], { cwd: dir });
-  const first = fs.readFileSync(rules, 'utf8');
-
-  runCli(['--antigravity'], { cwd: dir });
-  const second = fs.readFileSync(rules, 'utf8');
-
-  assert.strictEqual(second, first, 're-run changed the file');
-  const markers = second.match(/calm-adhd-skills:start/g) || [];
-  assert.strictEqual(markers.length, 1, `expected 1 marker, got ${markers.length}`);
+  const { status } = runCli(['--global', '--antigravity'], {
+    cwd: dir,
+    env: { HOME: home, USERPROFILE: home },
+  });
+  assert.strictEqual(status, 0);
+  assert.ok(
+    fs.existsSync(path.join(home, '.gemini', 'config', 'skills', 'analyze', 'SKILL.md')),
+    'did not install into ~/.gemini/config/skills'
+  );
 });
 
 test('--global targets the home directory', (dir) => {

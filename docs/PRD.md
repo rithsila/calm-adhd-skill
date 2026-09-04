@@ -28,8 +28,17 @@ The package focuses on a safe 3-step delivery flow (`/analyze` → `/implement` 
 | --- | --- |
 | `npx calm-adhd-skills --project` | Default. Installs skills into the current project directory (`./.agents/skills/`). |
 | `npx calm-adhd-skills --global` | Installs skills into the user home directory (`~/.agents/skills/`). |
-| `npx calm-adhd-skills --antigravity` | Appends rules to `./.antigravity/rules.md`. |
-| `npx calm-adhd-skills --continue` | Installs prompts to `./.continue/prompts/`. |
+| `npx calm-adhd-skills --antigravity` | Installs where Antigravity reads. Same as `--project`; with `--global`, `~/.gemini/config/skills/`. |
+| `npx calm-adhd-skills --continue` | Installs prompts to `./.continue/prompts/`, with `invokable: true` frontmatter. |
+
+> **Paths verified 2026-09-04** against the editors' own docs. Two paths in the
+> original draft were wrong and have been corrected here:
+>
+> - Antigravity has no `.antigravity/rules.md`. It reads workspace skills from
+>   `.agents/skills/` — the same path Zed uses — and global skills from
+>   `~/.gemini/config/skills/`.
+> - Continue only lists a markdown prompt as a slash command when its
+>   frontmatter sets `invokable: true`.
 
 ---
 
@@ -343,10 +352,13 @@ console.log('  /analyze, /implement, /verify, /defend-code, /audit-infra, /harde
 
 ### 6.3 Test in Google Antigravity
 
-Antigravity reads instructions from `.antigravity/rules.md` in the project root.
+Antigravity reads workspace skills from `.agents/skills/`, the same path Zed
+uses, so the default install already covers it. Global skills go to
+`~/.gemini/config/skills/` instead.
 
-1. Paste the prompt definitions into your `.antigravity/rules.md`.
-2. In the Antigravity prompt bar, type:
+1. Run `npx calm-adhd-skills` (or `--global --antigravity` for every workspace).
+2. Ask the agent something that matches a skill description. Antigravity picks
+   skills by description rather than by slash command:
 
    ```text
    /defend-code check our database connection file

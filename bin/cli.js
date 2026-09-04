@@ -1,6 +1,19 @@
 #!/usr/bin/env node
 'use strict';
 
+/**
+ * Installer for calm-adhd-skills.
+ *
+ * Install paths, verified against the editors' own docs (2026-09):
+ *
+ *   Zed project      <cwd>/.agents/skills/<name>/SKILL.md
+ *   Zed global       ~/.agents/skills/<name>/SKILL.md
+ *   Antigravity      <cwd>/.agents/skills/<name>/SKILL.md   (same path as Zed)
+ *   Antigravity glo. ~/.gemini/config/skills/<name>/SKILL.md
+ *   Continue         <cwd>/.continue/prompts/<name>.md      (needs invokable: true)
+ *   Continue global  ~/.continue/prompts/<name>.md
+ */
+
 const fs = require('fs');
 const path = require('path');
 
@@ -8,10 +21,6 @@ const pkg = require('../package.json');
 
 const SKILLS_SOURCE = path.join(__dirname, '..', 'skills');
 const HOME = process.env.HOME || process.env.USERPROFILE;
-
-// Markers let us re-run --antigravity without duplicating the rules.
-const MARKER_START = '<!-- calm-adhd-skills:start -->';
-const MARKER_END = '<!-- calm-adhd-skills:end -->';
 
 const green = (s) => `\x1b[32m${s}\x1b[0m`;
 const red = (s) => `\x1b[31m${s}\x1b[0m`;
@@ -31,12 +40,20 @@ Usage:
   npx ${pkg.name} [options]
 
 Options:
-  --project        Install skills into ./.agents/skills/ (default)
-  --global         Install skills into ~/.agents/skills/
-  --antigravity    Append skill rules to ./.antigravity/rules.md
-  --continue       Install prompts into ./.continue/prompts/
+  --project        Install to ./.agents/skills/ (default).
+                   Zed and Antigravity both read this path.
+  --global         Install for every project instead of just this one.
+  --antigravity    Install where Antigravity looks. Same as --project,
+                   unless combined with --global.
+  --continue       Install prompts to ./.continue/prompts/.
   -h, --help       Show this help
   -v, --version    Show the version
+
+Examples:
+  npx ${pkg.name}                      # this project (Zed + Antigravity)
+  npx ${pkg.name} --global             # every project, in Zed
+  npx ${pkg.name} --global --antigravity   # every project, in Antigravity
+  npx ${pkg.name} --continue           # VS Code, via the Continue extension
 
 Slash commands installed:
   /analyze, /implement, /verify, /defend-code, /audit-infra,
@@ -81,58 +98,38 @@ function readSkills() {
   return skills;
 }
 
-/** Copy the whole skills/ tree to .agents/skills/. */
-function installSkills(targetBase) {
+/** Copy the whole skills/ tree. Used by Zed and Antigravity alike. */
+function installSkills(targetBase, label) {
   fs.mkdirSync(path.dirname(targetBase), { recursive: true });
   fs.cpSync(SKILLS_SOURCE, targetBase, { recursive: true });
-  console.log(green(`✔ Skills installed to: ${targetBase}`));
+  console.log(green(`✔ ${label}: ${targetBase}`));
 }
 
-/** Write one flat prompt file per skill, named after the skill. */
+/**
+ * Continue only lists a markdown prompt as a slash command when its
+ * frontmatter sets `invokable: true`, so rebuild the frontmatter on the way
+ * out instead of copying SKILL.md as-is.
+ */
+function toContinuePrompt(skill) {
+  return [
+    '---',
+    `name: ${skill.name}`,
+    `description: ${skill.description}`,
+    'invokable: true',
+    '---',
+    '',
+    skill.body,
+    '',
+  ].join('\n');
+}
+
+/** Write one prompt file per skill, named after the skill. */
 function installContinuePrompts(skills, targetDir) {
   fs.mkdirSync(targetDir, { recursive: true });
   for (const skill of skills) {
-    fs.copyFileSync(skill.source, path.join(targetDir, `${skill.name}.md`));
+    fs.writeFileSync(path.join(targetDir, `${skill.name}.md`), toContinuePrompt(skill));
   }
-  console.log(green(`✔ Continue prompts installed to: ${targetDir}`));
-}
-
-/** Append (or replace) our marked block inside .antigravity/rules.md. */
-function installAntigravityRules(skills, rulesFile) {
-  const block = [
-    MARKER_START,
-    '',
-    '# Calm-ADHD Skills',
-    '',
-    'Treat each heading below as a slash command. When the user types the',
-    'command, follow the rules under it.',
-    '',
-    ...skills.map((skill) =>
-      [`## /${skill.name}`, '', `${skill.description}`, '', skill.body, ''].join('\n')
-    ),
-    MARKER_END,
-    '',
-  ].join('\n');
-
-  fs.mkdirSync(path.dirname(rulesFile), { recursive: true });
-
-  let existing = fs.existsSync(rulesFile) ? fs.readFileSync(rulesFile, 'utf8') : '';
-  const start = existing.indexOf(MARKER_START);
-  const end = existing.indexOf(MARKER_END);
-
-  if (start !== -1 && end !== -1 && end > start) {
-    // Replace the block we wrote last time, leave the user's own rules alone.
-    const before = existing.slice(0, start);
-    const after = existing.slice(end + MARKER_END.length).replace(/^\r?\n/, '');
-    existing = before + block + after;
-    fs.writeFileSync(rulesFile, existing);
-    console.log(green(`✔ Antigravity rules updated in: ${rulesFile}`));
-    return;
-  }
-
-  const separator = existing.length > 0 && !existing.endsWith('\n\n') ? '\n\n' : '';
-  fs.writeFileSync(rulesFile, existing + separator + block);
-  console.log(green(`✔ Antigravity rules appended to: ${rulesFile}`));
+  console.log(green(`✔ Continue prompts: ${targetDir}`));
 }
 
 function main() {
@@ -150,17 +147,34 @@ function main() {
   const isGlobal = args.includes('--global');
   const wantsAntigravity = args.includes('--antigravity');
   const wantsContinue = args.includes('--continue');
-  // --project is the default when no editor target is given.
-  const wantsSkills = args.includes('--project') || (!wantsAntigravity && !wantsContinue);
+  // --project is the default when no other target is named.
+  const wantsProject = args.includes('--project') || (!wantsAntigravity && !wantsContinue);
 
   if (isGlobal && !HOME) fail('Cannot resolve your home directory for --global.');
 
-  const root = isGlobal ? HOME : process.cwd();
+  const cwd = process.cwd();
   const skills = readSkills();
 
-  if (wantsSkills) installSkills(path.join(root, '.agents', 'skills'));
-  if (wantsContinue) installContinuePrompts(skills, path.join(root, '.continue', 'prompts'));
-  if (wantsAntigravity) installAntigravityRules(skills, path.join(root, '.antigravity', 'rules.md'));
+  if (wantsProject) {
+    const target = isGlobal
+      ? path.join(HOME, '.agents', 'skills')
+      : path.join(cwd, '.agents', 'skills');
+    installSkills(target, isGlobal ? 'Skills installed for every project' : 'Skills installed');
+  }
+
+  if (wantsAntigravity) {
+    // Antigravity reads .agents/skills in the workspace, the same path Zed
+    // uses, but keeps its global skills under ~/.gemini/config/skills.
+    const target = isGlobal
+      ? path.join(HOME, '.gemini', 'config', 'skills')
+      : path.join(cwd, '.agents', 'skills');
+    installSkills(target, 'Antigravity skills');
+  }
+
+  if (wantsContinue) {
+    const root = isGlobal ? HOME : cwd;
+    installContinuePrompts(skills, path.join(root, '.continue', 'prompts'));
+  }
 
   console.log('');
   console.log('Available slash commands:');
