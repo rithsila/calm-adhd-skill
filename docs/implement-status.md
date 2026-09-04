@@ -3,7 +3,8 @@
 Tracks the build of **calm-adhd-skills** against [PRD.md](./PRD.md).
 
 - **Last updated:** 2026-09-04
-- **Version:** 0.1.0 (not published)
+- **Version:** 0.1.0 (not published to npm)
+- **Remote:** https://github.com/rithsila/calm-adhd-skill (public, pushed)
 - **Overall:** scaffold complete and locally tested. Not yet released.
 
 Legend: ✅ done · 🟡 partly done · ⬜ not started
@@ -21,8 +22,8 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | Local CLI testing | ✅ Done (10 automated smoke tests) |
 | Install paths verified (P11) | ✅ Done |
 | Editor testing (PRD §6) | ⬜ Not started |
-| Repo + license | 🟡 Partly done (git init ✅, license ⬜) |
-| CI | ✅ Done (not yet run on a remote) |
+| Repo + license | ✅ Done (MIT, © 2026 rithsila, pushed) |
+| CI | 🟡 Written and pushed, blocked by a GitHub billing lock |
 | npm publish | ⬜ Not started |
 | Broader host support | ⬜ Out of scope (see PRD §7.1) |
 
@@ -50,7 +51,11 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 - ✅ `.gitignore` — ignores `node_modules/` and the CLI's own local output
   (`.agents/`, `.continue/`, `.antigravity/`).
 - ✅ `docs/PRD.md`, `docs/implement-status.md`.
-- ✅ `git init` on branch `main` + initial commit (`919a168`, 13 files).
+- ✅ `LICENSE` — MIT, © 2026 rithsila. Came from the remote's initial commit;
+  local history was rebased on top of it, so the licence is the root commit.
+- ✅ `package.json` metadata: `author`, `homepage`, `repository`, `bugs`.
+- ✅ Pushed to https://github.com/rithsila/calm-adhd-skill (public).
+- ✅ `git init` on branch `main` + initial commit.
   `.claude/settings.local.json` and the headroom state files are ignored as
   per-machine state.
 
@@ -183,19 +188,16 @@ gesture. In Antigravity you describe the task instead.
 
 ## 3. Pending
 
-### 3.1 Blocked on your decision
+### 3.1 Blocked on your account
 
 | # | Task | Why it is blocked |
 | --- | --- | --- |
-| P1 | Add a `LICENSE` file | `package.json` says MIT, but a LICENSE needs a real copyright holder. Tell me the name/org to use. |
-| P2 | Fill in `package.json` author + `repository` | Needs your name/handle and the Git remote URL. |
-| P3 | Confirm the npm name | `calm-adhd-skills` is unverified on the registry. If taken, fall back to `@your-scope/calm-adhd-skills`. |
+| P16 | Unlock GitHub Actions | Every CI job failed with "your account is locked due to a billing issue". No job ever started, so the workflow is still unproven. The repo is public, so Actions minutes are free — this is an account-level lock, not a repo cost. Fix it in GitHub billing settings, then re-run. |
 
 ### 3.2 Ready to do
 
 | # | Task | Notes |
 | --- | --- | --- |
-| P5 | Push to a remote | Needs the remote URL from P2. |
 
 ### 3.3 Real-editor testing (PRD §6) — none done yet
 
@@ -229,8 +231,9 @@ editor picks them up.
 - ~~**P11 install paths.**~~ Resolved — see §2.7. Two of the four were wrong and
   are now fixed. The remaining exposure is that the paths were confirmed from
   documentation, not by running the editors (P8–P10).
-- **CI is unproven.** The workflow is written and the suite passes locally, but
-  it has never run on a runner, so the YAML is unverified until P5 lands.
+- **CI is unproven.** The workflow is pushed, but all 7 jobs were refused before
+  starting: "your account is locked due to a billing issue". The YAML has never
+  executed, so it may still contain errors. Blocked on P16, not on code.
 - **PRD §5 drift.** The PRD keeps the minimal code sketch, with a note that the
   shipped CLI is fuller. If the CLI changes further, update that note.
 
@@ -244,6 +247,8 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | Rebased local history onto the remote's LICENSE commit | Keeps one linear history with the licence at the root, instead of a merge of unrelated histories. |
+| 2026-09-04 | npm package `calm-adhd-skills`, GitHub repo `calm-adhd-skill` | The names differ by one "s". Registry returns 404 for the package name, so it is free. Left as-is; rename the repo if you want them to match. |
 | 2026-09-04 | Output block expanded to 11 rules + session handoff | The 6-bullet version was too soft. Adopted the `i-have-adhd` rule set, plus the user's own two: simple English for non-native readers, and a session handoff that saves tokens on resume. |
 | 2026-09-04 | Independent repo, not a fork of `ayghri/i-have-adhd` | Upstream is a different project (output shaping, 1 skill, no npx CLI). Forking would inherit 192 unrelated commits, a logo, 7 translations, and an eval harness. Credited as prior art in the README instead. |
 | 2026-09-04 | Shared output-style block added to all 7 skills | The name is calm-adhd, but the skills only said "simple English". The block makes the constraint concrete, and a test keeps all 7 byte-identical. |
