@@ -32,6 +32,22 @@ project has one, then print a short copy-paste prompt for the next session. This
 keeps long work resumable without re-reading the whole history, which saves
 tokens.
 
+**Single source.** The rules live in `rules.md` at the repo root. `npm run
+sync-rules` copies them into all seven `SKILL.md` files, and `npm test` fails if
+any skill drifts. Never edit the copies.
+
+**Always-on install.** The rules are also installed as an editor rules file, so
+they apply to every reply and not only to slash commands:
+
+| Editor | File | Notes |
+| --- | --- | --- |
+| Zed | `AGENTS.md`, or an existing `.rules` | Zed reads the first match in its filename list, so extend that file rather than adding one it would ignore. |
+| Antigravity | `.agents/rules/calm-adhd.md` | Owned by this package, written whole. |
+| Continue | `.continue/rules/calm-adhd.md` | Needs `alwaysApply: true`, and YAML frontmatter on line 1. |
+
+`--no-rules` skips this. Shared files get a marker block so a re-run replaces
+only our part.
+
 ---
 
 ## 2. CLI Installer Specifications

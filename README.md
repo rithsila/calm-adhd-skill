@@ -18,6 +18,10 @@ They also share a **session handoff** rule: update `implement-status.md`, then
 print a copy-paste prompt for the next session. Long work stays resumable
 without re-reading the whole history.
 
+The rules live in one file, [`rules.md`](rules.md). The installer puts them in
+your project as an **always-on rules file**, so they apply to every reply — not
+only when you type a slash command.
+
 ---
 
 ## Install
@@ -40,7 +44,19 @@ npx calm-adhd-skills --global
 | `--global` | Writes skills to `~/.agents/skills/`. |
 | `--antigravity` | Installs where Antigravity reads. Same as `--project`; with `--global`, `~/.gemini/config/skills/`. |
 | `--continue` | Writes prompts to `./.continue/prompts/`, marked `invokable: true`. |
+| `--no-rules` | Install the skills only. Skip the always-on rules files. |
 | `--help` | Show all options. |
+
+The rules are installed here:
+
+| Editor | File |
+| --- | --- |
+| Zed | `AGENTS.md`, or your existing `.rules` file if you have one |
+| Antigravity | `.agents/rules/calm-adhd.md` |
+| Continue | `.continue/rules/calm-adhd.md` (`alwaysApply: true`) |
+
+`AGENTS.md` and `.rules` are yours, so the block goes between HTML markers. A
+re-run replaces only that block. Everything else you wrote stays.
 
 You can combine flags. `--global` only changes *where* things go, so
 `--global --continue` writes the Continue prompts to `~/.continue/prompts/`. Name
@@ -127,6 +143,15 @@ ls .agents/skills/       # check the files landed
 To edit a command, change the matching `skills/<name>/SKILL.md` and run the
 installer again.
 
+To edit the shared rules, change `rules.md` — never the copies inside the
+skills — then run:
+
+```bash
+npm run sync-rules
+```
+
+`npm test` fails if a skill has drifted from `rules.md`.
+
 Run the tests before you push:
 
 ```bash
@@ -143,6 +168,9 @@ They exercise every flag in a temp directory and clean up after themselves.
 calm-adhd-skills/
 ├── bin/
 │   └── cli.js          # Installer script (Node.js, no dependencies)
+├── rules.md            # Single source for the shared output rules
+├── scripts/
+│   └── sync-rules.js   # Copies rules.md into all 7 skills
 ├── skills/
 │   ├── analyze/SKILL.md
 │   ├── implement/SKILL.md

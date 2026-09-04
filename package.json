@@ -17,9 +17,12 @@
   "files": [
     "bin/",
     "skills/",
+    "rules.md",
     "README.md"
   ],
   "scripts": {
+    "sync-rules": "node scripts/sync-rules.js",
+    "pretest": "node scripts/sync-rules.js --check",
     "test": "node test/smoke.js"
   },
   "keywords": [

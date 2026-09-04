@@ -20,6 +20,14 @@ const path = require('path');
 const pkg = require('../package.json');
 
 const SKILLS_SOURCE = path.join(__dirname, '..', 'skills');
+const RULES_FILE = path.join(__dirname, '..', 'rules.md');
+
+// Markers keep the rules block replaceable inside a file the user also owns.
+const MARKER_START = '<!-- calm-adhd-skills:start -->';
+const MARKER_END = '<!-- calm-adhd-skills:end -->';
+
+// Zed reads the first match in this list, so append to the one already there.
+const ZED_RULES_FILES = ['.rules', '.cursorrules', 'AGENT.md', 'AGENTS.md'];
 const HOME = process.env.HOME || process.env.USERPROFILE;
 
 const green = (s) => `\x1b[32m${s}\x1b[0m`;
@@ -46,6 +54,7 @@ Options:
   --antigravity    Install where Antigravity looks. Same as --project,
                    unless combined with --global.
   --continue       Install prompts to ./.continue/prompts/.
+  --no-rules       Install the skills only. Skip the always-on rules files.
   -h, --help       Show this help
   -v, --version    Show the version
 
@@ -59,6 +68,85 @@ Slash commands installed:
   /analyze, /implement, /verify, /defend-code, /audit-infra,
   /harden-network, /audit-logs
 `);
+}
+
+/** The canonical rules block: everything from the last "Output style:" line. */
+function readRulesBlock() {
+  if (!fs.existsSync(RULES_FILE)) fail(`Rules file not found: ${RULES_FILE}`);
+  const raw = fs.readFileSync(RULES_FILE, 'utf8');
+
+  const re = /^Output style:$/gm;
+  let index = -1;
+  let match;
+  while ((match = re.exec(raw)) !== null) index = match.index;
+  if (index === -1) fail('rules.md has no "Output style:" line.');
+
+  return raw.slice(index).trim();
+}
+
+/** Write a file this package owns outright. Safe to overwrite in full. */
+function writeOwnedFile(file, content, label) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, content.endsWith('\n') ? content : content + '\n');
+  console.log(green(`✔ ${label}: ${file}`));
+}
+
+/**
+ * Write our block into a file the user may already own, between markers, so a
+ * re-run replaces only our part and never touches the rest.
+ */
+function upsertMarkedBlock(file, body, label) {
+  const block = `${MARKER_START}\n\n${body}\n\n${MARKER_END}\n`;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+  const start = existing.indexOf(MARKER_START);
+  const end = existing.indexOf(MARKER_END);
+
+  if (start !== -1 && end !== -1 && end > start) {
+    const before = existing.slice(0, start);
+    const after = existing.slice(end + MARKER_END.length).replace(/^\r?\n/, '');
+    fs.writeFileSync(file, before + block + after);
+    console.log(green(`✔ ${label} updated: ${file}`));
+    return;
+  }
+
+  const gap = existing.length > 0 && !existing.endsWith('\n\n') ? '\n\n' : '';
+  fs.writeFileSync(file, existing + gap + block);
+  console.log(green(`✔ ${label}: ${file}`));
+}
+
+/** Install the always-on rules for whichever editors were targeted. */
+function installRules(rules, { root, forZed, forAntigravity, forContinue }) {
+  const titled = `# Calm-ADHD output rules\n\n${rules}`;
+
+  if (forZed) {
+    // Zed stops at the first filename it finds, so extend that one rather than
+    // adding AGENTS.md next to a .rules file it would silently ignore.
+    const existing = ZED_RULES_FILES.map((name) => path.join(root, name)).find((file) =>
+      fs.existsSync(file)
+    );
+    upsertMarkedBlock(existing || path.join(root, 'AGENTS.md'), titled, 'Zed rules');
+  }
+
+  // These two filenames belong to this package, so write them whole. No
+  // markers: Continue needs its YAML frontmatter on line 1.
+  if (forAntigravity) {
+    writeOwnedFile(
+      path.join(root, '.agents', 'rules', 'calm-adhd.md'),
+      titled,
+      'Antigravity rules'
+    );
+  }
+
+  if (forContinue) {
+    const front = ['---', 'name: Calm-ADHD output rules', 'alwaysApply: true', '---', ''].join('\n');
+    writeOwnedFile(
+      path.join(root, '.continue', 'rules', 'calm-adhd.md'),
+      front + '\n' + titled,
+      'Continue rules'
+    );
+  }
 }
 
 /**
@@ -138,7 +226,7 @@ function main() {
   if (args.includes('-h') || args.includes('--help')) return printHelp();
   if (args.includes('-v') || args.includes('--version')) return console.log(pkg.version);
 
-  const known = ['--project', '--global', '--antigravity', '--continue'];
+  const known = ['--project', '--global', '--antigravity', '--continue', '--no-rules'];
   const unknown = args.filter((arg) => !known.includes(arg));
   if (unknown.length > 0) {
     fail(`Unknown option: ${unknown.join(', ')}. Run with --help to see the options.`);
@@ -152,6 +240,7 @@ function main() {
 
   if (isGlobal && !HOME) fail('Cannot resolve your home directory for --global.');
 
+  const wantsRules = !args.includes('--no-rules');
   const cwd = process.cwd();
   const skills = readSkills();
 
@@ -174,6 +263,16 @@ function main() {
   if (wantsContinue) {
     const root = isGlobal ? HOME : cwd;
     installContinuePrompts(skills, path.join(root, '.continue', 'prompts'));
+  }
+
+  if (wantsRules) {
+    installRules(readRulesBlock(), {
+      // Zed keeps its always-on rules in the project, never under ~/.agents.
+      root: cwd,
+      forZed: wantsProject,
+      forAntigravity: wantsAntigravity,
+      forContinue: wantsContinue,
+    });
   }
 
   console.log('');

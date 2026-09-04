@@ -198,6 +198,71 @@ test('every skill carries the same output-style block', (dir) => {
   assert.ok(installed.includes('Session handoff:'), 'handoff rule lost during install');
 });
 
+test('rules.md is the single source for every skill block', (dir) => {
+  const check = spawnSync(process.execPath, [path.join(__dirname, '..', 'scripts', 'sync-rules.js'), '--check'], {
+    cwd: path.join(__dirname, '..'),
+    encoding: 'utf8',
+  });
+  assert.strictEqual(check.status, 0, `skills drifted from rules.md:\n${check.stderr}`);
+});
+
+test('default install writes Zed rules to AGENTS.md', (dir) => {
+  const { status } = runCli([], { cwd: dir });
+  assert.strictEqual(status, 0);
+
+  const agents = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+  assert.ok(agents.includes('Output style:'), 'AGENTS.md has no rules');
+  assert.ok(agents.includes('Session handoff:'), 'AGENTS.md has no handoff rule');
+});
+
+test('an existing .rules file is extended, not bypassed', (dir) => {
+  // Zed reads the first filename it finds, so AGENTS.md next to .rules is dead.
+  const rulesFile = path.join(dir, '.rules');
+  fs.writeFileSync(rulesFile, '# my rules\n\nUse tabs.\n');
+
+  runCli([], { cwd: dir });
+
+  const content = fs.readFileSync(rulesFile, 'utf8');
+  assert.ok(content.includes('Use tabs.'), 'user rules were lost');
+  assert.ok(content.includes('Output style:'), '.rules did not get the block');
+  assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')), 'wrote AGENTS.md that Zed would ignore');
+});
+
+test('installing rules twice does not duplicate them', (dir) => {
+  runCli([], { cwd: dir });
+  const first = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+
+  runCli([], { cwd: dir });
+  const second = fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8');
+
+  assert.strictEqual(second, first, 're-run changed AGENTS.md');
+  assert.strictEqual((second.match(/calm-adhd-skills:start/g) || []).length, 1);
+});
+
+test('Continue rules keep YAML frontmatter on line 1', (dir) => {
+  runCli(['--continue'], { cwd: dir });
+
+  const file = path.join(dir, '.continue', 'rules', 'calm-adhd.md');
+  const content = fs.readFileSync(file, 'utf8');
+  // A marker comment above the frontmatter would stop Continue parsing it.
+  assert.ok(content.startsWith('---\n'), `frontmatter is not first: ${content.slice(0, 40)}`);
+  assert.ok(content.includes('alwaysApply: true'), 'rule is not always-on');
+});
+
+test('--antigravity writes its own rules file', (dir) => {
+  runCli(['--antigravity'], { cwd: dir });
+  const content = fs.readFileSync(path.join(dir, '.agents', 'rules', 'calm-adhd.md'), 'utf8');
+  assert.ok(content.includes('Output style:'), 'Antigravity rules missing');
+});
+
+test('--no-rules installs skills only', (dir) => {
+  const { status } = runCli(['--no-rules'], { cwd: dir });
+  assert.strictEqual(status, 0);
+  assert.ok(fs.existsSync(path.join(dir, '.agents', 'skills', 'analyze', 'SKILL.md')));
+  assert.ok(!fs.existsSync(path.join(dir, 'AGENTS.md')), '--no-rules still wrote rules');
+  assert.ok(!fs.existsSync(path.join(dir, '.agents', 'rules')), '--no-rules still wrote rules');
+});
+
 test('an unknown flag fails with a non-zero exit', (dir) => {
   const { status, stderr } = runCli(['--nope'], { cwd: dir });
   assert.notStrictEqual(status, 0, 'expected a non-zero exit');

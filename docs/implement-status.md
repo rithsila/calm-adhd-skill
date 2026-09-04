@@ -121,7 +121,7 @@ Extra behavior beyond the PRD:
 | `--global --project --continue` | Flags combine |
 | Unknown flag exits non-zero | Fails without writing files |
 
-### 2.6 Output rules in every skill
+### 2.6 Output rules: one source, installed always-on
 
 All 7 `SKILL.md` files end with the same block, byte-identical, enforced by a
 test so they cannot drift:
@@ -141,6 +141,16 @@ test so they cannot drift:
 Plus a **session handoff** rule: update `implement-status.md`, then print a
 copy-paste prompt for the next session. Rules 1-3 and 5-10 come from the
 `i-have-adhd` rule set; rule 4 and the handoff rule are the user's own.
+
+- ✅ `rules.md` at the repo root is the only place to edit them.
+- ✅ `npm run sync-rules` copies the block into all 7 skills.
+  `npm test` runs `--check` first and fails on drift.
+- ✅ The installer also writes them as an always-on rules file, so they apply to
+  every reply, not only to slash commands: `AGENTS.md` (or an existing `.rules`)
+  for Zed, `.agents/rules/calm-adhd.md` for Antigravity, and
+  `.continue/rules/calm-adhd.md` with `alwaysApply: true` for Continue.
+- ✅ `--no-rules` skips the rules files.
+- ✅ 18 smoke tests now, up from 11.
 
 ### 2.7 CI (P7)
 
@@ -247,6 +257,9 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | Rules moved into `rules.md`, synced into skills | Seven hand-copied blocks drift. One source plus a `--check` in `pretest` makes drift a failing test, not a review problem. |
+| 2026-09-04 | Rules also installed as an always-on editor rules file | The rules only applied when a slash command ran. Users install the package to get the behavior everywhere. |
+| 2026-09-04 | Owned rules files written whole; shared files use markers | Continue needs YAML frontmatter on line 1, so a marker comment above it breaks parsing. `AGENTS.md` and `.rules` belong to the user, so those keep markers. |
 | 2026-09-04 | Rebased local history onto the remote's LICENSE commit | Keeps one linear history with the licence at the root, instead of a merge of unrelated histories. |
 | 2026-09-04 | npm package `calm-adhd-skills`, GitHub repo `calm-adhd-skill` | The names differ by one "s". Registry returns 404 for the package name, so it is free. Left as-is; rename the repo if you want them to match. |
 | 2026-09-04 | Output block expanded to 11 rules + session handoff | The 6-bullet version was too soft. Adopted the `i-have-adhd` rule set, plus the user's own two: simple English for non-native readers, and a session handoff that saves tokens on resume. |
