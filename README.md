@@ -75,6 +75,7 @@ else.
 | `/analyze` | Reads the code, lists risks, and writes a plan. Edits nothing. |
 | `/implement` | Applies the approved plan and runs a security self-audit. |
 | `/verify` | Runs the tests. Stops after 2 failures instead of looping. |
+| `/status` | Builds or updates `implement-status.md` from your PRD and the repo. |
 | `/defend-code` | Finds OWASP Top 10 flaws and writes the secure patch. |
 | `/audit-infra` | Hardens Docker Compose and Linux service configs. |
 | `/harden-network` | Writes least-privilege UFW / iptables rules. |
@@ -101,6 +102,15 @@ Then check your work:
 ```text
 /verify npm test
 ```
+
+At the end of a session, write down where you stopped:
+
+```text
+/status docs/PRD.md
+```
+
+`/status` reads your PRD, checks the repo, and rewrites `implement-status.md`.
+It ends with a copy-paste prompt for your next session.
 
 ---
 
@@ -173,6 +183,7 @@ calm-adhd-skills/
 │   └── sync-rules.js   # Copies rules.md into all 7 skills
 ├── skills/
 │   ├── analyze/SKILL.md
+│   ├── status/SKILL.md
 │   ├── implement/SKILL.md
 │   ├── verify/SKILL.md
 │   ├── defend-code/SKILL.md

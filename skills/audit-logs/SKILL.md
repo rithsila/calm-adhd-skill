@@ -18,6 +18,7 @@ Rules:
 - Avoid theoretical essays; give direct blocking rules.
 
 Output style:
+
 1. Lead with the next action. Put it on line 1.
 2. Number multi-step work.
 3. Cap every list at 5 items.
@@ -31,7 +32,8 @@ Output style:
 11. End with one concrete next step.
 
 Session handoff:
+
 - Update `implement-status.md` if the project has one. Mark what is done.
-  List what is left.
+List what is left.
 - Then print a short copy-paste prompt the user can send next session to
-  pick up the remaining work.
+pick up the remaining work.

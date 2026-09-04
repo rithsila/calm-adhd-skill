@@ -50,10 +50,10 @@ jobs:
         shell: bash
         run: |
           npm pack --dry-run --json > pack.json
-          for skill in analyze implement verify defend-code audit-infra harden-network audit-logs; do
+          for skill in analyze implement verify status defend-code audit-infra harden-network audit-logs; do
             grep -q "skills/$skill/SKILL.md" pack.json || {
               echo "::error::skills/$skill/SKILL.md is missing from the tarball"
               exit 1
             }
           done
-          echo "All 7 skills are present in the tarball."
+          echo "All 8 skills are present in the tarball."

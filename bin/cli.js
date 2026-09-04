@@ -65,8 +65,8 @@ Examples:
   npx ${pkg.name} --continue           # VS Code, via the Continue extension
 
 Slash commands installed:
-  /analyze, /implement, /verify, /defend-code, /audit-infra,
-  /harden-network, /audit-logs
+  /analyze, /implement, /verify, /status, /defend-code,
+  /audit-infra, /harden-network, /audit-logs
 `);
 }
 

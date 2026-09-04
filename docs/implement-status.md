@@ -17,7 +17,7 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | --- | --- |
 | Docs (PRD) | ✅ Done |
 | Directory layout (PRD §3) | ✅ Done |
-| Skills / prompts (PRD §4) | ✅ Done (11 output rules + handoff) |
+| Skills / prompts (PRD §4) | ✅ Done (8 skills, 11 output rules + handoff) |
 | CLI installer (PRD §5) | ✅ Done |
 | Local CLI testing | ✅ Done (10 automated smoke tests) |
 | Install paths verified (P11) | ✅ Done |
@@ -61,8 +61,8 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 
 ### 2.3 Skills (PRD §4)
 
-All seven written verbatim from the PRD, each with `name` + `description`
-frontmatter:
+Seven written verbatim from the PRD, plus `/status` added on 2026-09-04. Each
+has `name` + `description` frontmatter:
 
 | # | Skill | File | Status |
 | --- | --- | --- | --- |
@@ -73,6 +73,7 @@ frontmatter:
 | 4.5 | `/audit-infra` | `skills/audit-infra/SKILL.md` | ✅ |
 | 4.6 | `/harden-network` | `skills/harden-network/SKILL.md` | ✅ |
 | 4.7 | `/audit-logs` | `skills/audit-logs/SKILL.md` | ✅ |
+| 4.8 | `/status` | `skills/status/SKILL.md` | ✅ |
 
 ### 2.4 CLI (PRD §2 + §5)
 
@@ -151,6 +152,9 @@ copy-paste prompt for the next session. Rules 1-3 and 5-10 come from the
   `.continue/rules/calm-adhd.md` with `alwaysApply: true` for Continue.
 - ✅ `--no-rules` skips the rules files.
 - ✅ 18 smoke tests now, up from 11.
+- ✅ Caught a real drift: all 8 `SKILL.md` files were edited outside the repo
+  (rule 4 became "native read  speaker"). `pretest` failed, and
+  `npm run sync-rules` restored them from `rules.md`.
 
 ### 2.7 CI (P7)
 
@@ -257,6 +261,7 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | `/status` added as an 8th skill, self-contained | It generates `implement-status.md` from the PRD and the repo. It needs no companion doc — `Architecture.md`, `intent.md`, `CLAUDE.md` are not required, and depending on them would make it fail in most repos. The output template lives inside the skill so it also works in Continue, which installs a single flat file. |
 | 2026-09-04 | Rules moved into `rules.md`, synced into skills | Seven hand-copied blocks drift. One source plus a `--check` in `pretest` makes drift a failing test, not a review problem. |
 | 2026-09-04 | Rules also installed as an always-on editor rules file | The rules only applied when a slash command ran. Users install the package to get the behavior everywhere. |
 | 2026-09-04 | Owned rules files written whole; shared files use markers | Continue needs YAML frontmatter on line 1, so a marker comment above it breaks parsing. `AGENTS.md` and `.rules` belong to the user, so those keep markers. |

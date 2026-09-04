@@ -25,6 +25,7 @@ const SKILL_NAMES = [
   'defend-code',
   'harden-network',
   'implement',
+  'status',
   'verify',
 ];
 

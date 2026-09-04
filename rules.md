@@ -5,17 +5,19 @@ This file is the single source of truth for the output rules.
 Two things use it:
 
 1. Every `skills/*/SKILL.md` ends with the block below. Run `npm run sync-rules`
-   after editing this file. A test fails if any skill drifts.
+ after editing this file. A test fails if any skill drifts.
 2. The installer writes it as an always-on rules file, so the rules apply to
-   every reply — not only when a slash command runs.
+ every reply — not only when a slash command runs.
 
 Where it gets installed:
 
-| Editor | Path |
-| --- | --- |
-| Zed | `AGENTS.md` in the project root, or `.rules` if that file already exists |
-| Antigravity | `.agents/rules/calm-adhd.md` |
-| Continue | `.continue/rules/calm-adhd.md`, with `alwaysApply: true` |
+
+| Editor      | Path                                                                     |
+| ----------- | ------------------------------------------------------------------------ |
+| Zed         | `AGENTS.md` in the project root, or `.rules` if that file already exists |
+| Antigravity | `.agents/rules/calm-adhd.md`                                             |
+| Continue    | `.continue/rules/calm-adhd.md`, with `alwaysApply: true`                 |
+
 
 Everything from `Output style:` down is the canonical block. Do not put anything
 after it.
@@ -23,6 +25,7 @@ after it.
 ---
 
 Output style:
+
 1. Lead with the next action. Put it on line 1.
 2. Number multi-step work.
 3. Cap every list at 5 items.
@@ -36,7 +39,9 @@ Output style:
 11. End with one concrete next step.
 
 Session handoff:
+
 - Update `implement-status.md` if the project has one. Mark what is done.
-  List what is left.
+List what is left.
 - Then print a short copy-paste prompt the user can send next session to
-  pick up the remaining work.
+pick up the remaining work.
+

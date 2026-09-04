@@ -92,6 +92,8 @@ calm-adhd-skills/
 └── skills/
     ├── analyze/
     │   └── SKILL.md
+    ├── status/
+    │   └── SKILL.md
     ├── implement/
     │   └── SKILL.md
     ├── verify/
@@ -311,6 +313,29 @@ Rules:
 - Write short, clear sentences.
 - Avoid theoretical essays; give direct blocking rules.
 ````
+
+---
+
+### 4.8 `/status`
+
+**File:** `skills/status/SKILL.md`
+
+**Purpose:** Build or update `implement-status.md` from the PRD and the real
+repo state, so long work stays resumable.
+
+Inputs: the PRD path (defaults to `PRD.md` or `docs/PRD.md`) and the repo
+itself — file tree, `git log`, and the test command. It needs no other document.
+`Architecture.md`, `intent.md`, `CLAUDE.md` and friends are not required, and
+depending on them would make the command fail in most repos.
+
+Key rules:
+
+- Mark a task done only with proof from the repo. Otherwise write "not verified".
+- Pending tasks get stable IDs (`P1`, `P2`). Old IDs are never renumbered.
+- Split pending into blocked and ready, and name what blocks each one.
+- Keep every row of an existing Decisions log. Add, never delete.
+
+The skill carries its own output template, so it needs no companion file.
 
 ---
 
