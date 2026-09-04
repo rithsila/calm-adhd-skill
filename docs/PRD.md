@@ -1,0 +1,370 @@
+# Product Requirements Document (PRD): Calm-ADHD Skills
+
+## 1. Overview
+
+An open-source skills package distributed via npm/npx. It gives developers and solo operators instant, standardized slash commands inside modern AI coding editors (Zed, Antigravity, VS Code / Continue).
+
+The package focuses on a safe 3-step delivery flow (`/analyze` → `/implement` → `/verify`) and Blue Team defense workflows (`/defend-code`, `/audit-infra`, `/audit-logs`, `/harden-network`).
+
+### Core Output Constraint
+
+- **Language Level:** Simple, plain English only.
+- **Audience:** Non-native English speakers.
+- **Format:** Short sentences, scannable bullet points, concrete code patches, and zero unnecessary fluff or academic jargon.
+
+---
+
+## 2. CLI Installer Specifications
+
+### Package Identity
+
+- **NPM Package Name:** `calm-adhd-skills` (or `@your-scope/calm-adhd-skills`)
+- **Binary Name:** `calm-adhd-skills`
+- **Execution:** `npx calm-adhd-skills [options]`
+
+### CLI Flags
+
+| Flag | Behavior |
+| --- | --- |
+| `npx calm-adhd-skills --project` | Default. Installs skills into the current project directory (`./.agents/skills/`). |
+| `npx calm-adhd-skills --global` | Installs skills into the user home directory (`~/.agents/skills/`). |
+| `npx calm-adhd-skills --antigravity` | Appends rules to `./.antigravity/rules.md`. |
+| `npx calm-adhd-skills --continue` | Installs prompts to `./.continue/prompts/`. |
+
+---
+
+## 3. Directory Layout
+
+The repository is organized so users can clone it directly or install it via `npx`:
+
+```text
+calm-adhd-skills/
+├── bin/
+│   └── cli.js                     # Installer script (Node.js)
+├── package.json
+├── README.md
+├── PRD.md
+└── skills/
+    ├── analyze/
+    │   └── SKILL.md
+    ├── implement/
+    │   └── SKILL.md
+    ├── verify/
+    │   └── SKILL.md
+    ├── defend-code/
+    │   └── SKILL.md
+    ├── audit-infra/
+    │   └── SKILL.md
+    ├── harden-network/
+    │   └── SKILL.md
+    └── audit-logs/
+        └── SKILL.md
+```
+
+---
+
+## 4. Skills Specification (Prompt Definitions)
+
+### 4.1 `/analyze`
+
+**File:** `skills/analyze/SKILL.md`
+
+**Purpose:** Inspect existing code and make an execution plan before touching any file.
+
+````markdown
+---
+name: analyze
+description: Read code, find risks, and make a plan. Do not edit code yet.
+---
+
+Analyze $ARGUMENTS (or the open files).
+
+Task:
+1. Target Files: Name the exact files and functions to modify.
+2. Changes: List the exact changes needed in short bullet points.
+3. Security Checks: Name any security risks to watch out for.
+4. Test Strategy: Name the exact test command to verify this change.
+
+Rules:
+- Write in simple, short English.
+- Do NOT edit or write code yet.
+- Wait for the user to say "proceed" or run /implement.
+````
+
+---
+
+### 4.2 `/implement`
+
+**File:** `skills/implement/SKILL.md`
+
+**Purpose:** Apply approved changes and run a Blue Team self-audit.
+
+````markdown
+---
+name: implement
+description: Make the planned changes and check for security bugs.
+---
+
+Apply the changes approved from the /analyze step: $ARGUMENTS
+
+Task:
+1. Edit only the required files.
+2. Self-Audit Checklist:
+   - Validate and sanitize all user inputs.
+   - Check that no API keys, tokens, or passwords are hardcoded.
+   - Ensure errors do not leak internal database info.
+3. Fix any security flaw immediately in the code.
+
+Rules:
+- Write clean code with simple comments.
+- Do not run test suites yet (wait for /verify).
+- Keep the final summary under 3 short sentences.
+````
+
+---
+
+### 4.3 `/verify`
+
+**File:** `skills/verify/SKILL.md`
+
+**Purpose:** Run terminal tests safely without looping on errors.
+
+````markdown
+---
+name: verify
+description: Run test suites and stop if commands fail.
+---
+
+Run test verification for the recent changes: $ARGUMENTS
+
+Task:
+1. Run the test command provided in $ARGUMENTS (or default project test runner).
+2. If tests pass, print "All tests passed" and summarize changes in 2 lines.
+3. If tests fail:
+   - Read the error log.
+   - You have 1 attempt to fix the error and re-run.
+   - Strict Stop Rule: If any command fails twice, STOP immediately. Do not keep
+     trying. Show the error log and ask the user for help.
+
+Rules:
+- Write in simple English.
+- Never loop terminal commands repeatedly.
+````
+
+---
+
+### 4.4 `/defend-code`
+
+**File:** `skills/defend-code/SKILL.md`
+
+**Purpose:** Audit backend code for vulnerabilities and patch them.
+
+````markdown
+---
+name: defend-code
+description: Find security flaws in code and write secure patches.
+---
+
+You are a Blue Team security engineer.
+Audit the code in $ARGUMENTS or the active file.
+
+Task:
+1. Vulnerability List: Spot OWASP Top 10 flaws (SQL injection, XSS, bad auth,
+   broken tokens).
+2. Explain: Explain the danger in 1-2 simple sentences.
+3. Patch: Rewrite the vulnerable function using secure coding practices
+   (parameterized queries, input validation).
+
+Rules:
+- Simple English only.
+- Never write attack scripts or exploits. Only provide defensive fixes.
+````
+
+---
+
+### 4.5 `/audit-infra`
+
+**File:** `skills/audit-infra/SKILL.md`
+
+**Purpose:** Audit Docker Compose files and Linux service settings.
+
+````markdown
+---
+name: audit-infra
+description: Hardens Docker and Linux container configurations.
+---
+
+You are a Blue Team infrastructure engineer.
+Audit the container or server configs in $ARGUMENTS.
+
+Task:
+1. Check for insecure settings:
+   - Running container as root user.
+   - Ports open to 0.0.0.0 unnecessarily.
+   - Missing CPU/RAM limits.
+   - Plaintext environment passwords.
+2. Output a ready-to-use, hardened configuration file.
+
+Rules:
+- Use simple English.
+- Provide direct copy-paste YAML or config files.
+````
+
+---
+
+### 4.6 `/harden-network`
+
+**File:** `skills/harden-network/SKILL.md`
+
+**Purpose:** Build strict firewall and network rules.
+
+````markdown
+---
+name: harden-network
+description: Generate least-privilege firewall rules (UFW/iptables).
+---
+
+You are a Blue Team network defense engineer.
+Review the firewall setup or port request in $ARGUMENTS.
+
+Task:
+1. Apply the least-privilege principle (block all inbound ports by default).
+2. Allow only required ports (e.g., 80/443 for web, restricted port for
+   SSH/admin).
+3. Provide exact copy-paste terminal commands for UFW or iptables.
+
+Rules:
+- Write simple English explanations.
+- Always include a warning if a rule risks locking the user out of SSH.
+````
+
+---
+
+### 4.7 `/audit-logs`
+
+**File:** `skills/audit-logs/SKILL.md`
+
+**Purpose:** Scan server logs to spot brute-force attacks and scans.
+
+````markdown
+---
+name: audit-logs
+description: Analyze server access logs and create block rules.
+---
+
+You are a Blue Team incident responder.
+Analyze the access/error logs in $ARGUMENTS.
+
+Task:
+1. Findings: List suspicious behavior (brute force, directory traversal,
+   endpoint scanning).
+2. Bad IPs: List attacker IPs and request patterns.
+3. Defense Rule: Generate an immediate Fail2ban filter or Nginx rate-limiting
+   block rule.
+
+Rules:
+- Write short, clear sentences.
+- Avoid theoretical essays; give direct blocking rules.
+````
+
+---
+
+## 5. CLI Implementation Guide (`bin/cli.js`)
+
+The CLI copies the template folders from the package to the user's directory:
+
+> **Note:** The snippet below is the minimal reference implementation. The
+> shipped `bin/cli.js` builds on it and handles all four flags from Section 2,
+> plus `--help` and `--version`.
+
+```javascript
+#!/usr/bin/env node
+const fs = require('fs');
+const path = require('path');
+
+const isGlobal = process.argv.includes('--global');
+const targetBase = isGlobal
+  ? path.join(process.env.HOME || process.env.USERPROFILE, '.agents', 'skills')
+  : path.join(process.cwd(), '.agents', 'skills');
+
+const skillsSource = path.join(__dirname, '..', 'skills');
+
+if (!fs.existsSync(skillsSource)) {
+  console.error('Skills source directory not found.');
+  process.exit(1);
+}
+
+fs.cpSync(skillsSource, targetBase, { recursive: true });
+console.log(`\x1b[32m✔ Skills installed successfully to: ${targetBase}\x1b[0m`);
+console.log('Available slash commands:');
+console.log('  /analyze, /implement, /verify, /defend-code, /audit-infra, /harden-network, /audit-logs');
+```
+
+---
+
+## 6. How to Test Your Skills
+
+### 6.1 Test in Zed
+
+1. Run a local install inside your project:
+
+   ```bash
+   node bin/cli.js
+   ```
+
+2. Check that the folder exists:
+
+   ```bash
+   ls .agents/skills/
+   ```
+
+3. Open Zed in that folder.
+4. Press `Ctrl + ?` (or `Cmd + ?`) to open the Agent panel.
+5. Type `/` — you will see `/analyze`, `/implement`, `/verify`, etc., in the autocomplete list.
+6. Run a test query:
+
+   ```text
+   /analyze src/auth.ts and I want to add rate limiting
+   ```
+
+### 6.2 Test in VS Code (Continue Extension)
+
+1. Install the prompts into `.continue/prompts/`:
+
+   ```bash
+   npx calm-adhd-skills --continue
+   ```
+
+   Each skill is written as `<name>.md` so the files do not collide. Add
+   `--global` to install into `~/.continue/prompts/` instead.
+
+2. Open the Continue chat panel (`Ctrl + L`).
+3. Type `/analyze` to verify the command autocompletes.
+
+### 6.3 Test in Google Antigravity
+
+Antigravity reads instructions from `.antigravity/rules.md` in the project root.
+
+1. Paste the prompt definitions into your `.antigravity/rules.md`.
+2. In the Antigravity prompt bar, type:
+
+   ```text
+   /defend-code check our database connection file
+   ```
+
+3. Verify that the agent outputs a safe code diff without generating exploit payloads.
+
+---
+
+## 7. Key Next Steps
+
+1. Fork the upstream repo:
+
+   ```bash
+   git clone https://github.com/ayghri/i-have-adhd.git calm-adhd-skills
+   cd calm-adhd-skills
+   ```
+
+2. Save this document as `PRD.md` in the repo root.
+3. Replace the folders inside `skills/` with the 7 folders defined in [Section 4](#4-skills-specification-prompt-definitions).
+4. Update `package.json` with your package name and ensure `"bin": "./bin/cli.js"` is configured before publishing to npm.

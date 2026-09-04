@@ -1,0 +1,12 @@
+node_modules/
+*.log
+.DS_Store
+
+# Local install output from the CLI
+.agents/
+.continue/
+.antigravity/
+
+# Claude Code local state (per-machine, not shared)
+.claude/settings.local.json
+.claude/.headroom_*
