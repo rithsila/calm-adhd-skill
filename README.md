@@ -10,7 +10,9 @@ Two things it gives you:
 2. **Blue Team defense commands** — `/defend-code`, `/audit-infra`,
    `/harden-network`, `/audit-logs`. Defensive fixes only, never exploits.
 
-Every skill answers in simple, short English. No jargon, no long essays.
+Every skill answers in simple, short English. No jargon, no long essays. All
+seven carry the same output rules: the next action first, numbered steps, real
+time estimates, no tangents.
 
 ---
 
@@ -153,6 +155,18 @@ calm-adhd-skills/
 ```
 
 Requires Node 18 or newer. No runtime dependencies.
+
+---
+
+## Prior art
+
+The ADHD-friendly output idea is not ours. [ayghri/i-have-adhd](https://github.com/ayghri/i-have-adhd)
+(MIT) does that job well and across many more hosts.
+
+This project is independent — separate code, separate history, no shared files.
+It borrows the idea of shaping output for a reader with ADHD and applies it to a
+fixed set of DevSecOps commands. If you want output shaping on its own, use
+i-have-adhd instead.
 
 ---
 

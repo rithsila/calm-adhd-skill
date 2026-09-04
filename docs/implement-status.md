@@ -24,6 +24,7 @@ Legend: ✅ done · 🟡 partly done · ⬜ not started
 | Repo + license | 🟡 Partly done (git init ✅, license ⬜) |
 | CI | ✅ Done (not yet run on a remote) |
 | npm publish | ⬜ Not started |
+| Broader host support | ⬜ Out of scope (see PRD §7.1) |
 
 ---
 
@@ -194,6 +195,12 @@ editor picks them up.
 | P13 | `npm publish` | P12, P8–P10 |
 | P14 | Verify `npx calm-adhd-skills` from a clean machine | P13 |
 
+### 3.5 Deferred
+
+| # | Task | Notes |
+| --- | --- | --- |
+| P15 | Plugin manifests for other hosts | Claude Code, Cursor, opencode, Gemini / Qwen / Kimi. Out of scope until npx ships — PRD §7.1. |
+
 ---
 
 ## 4. Known risks
@@ -216,6 +223,9 @@ editor picks them up.
 | 2026-09-04 | `--continue` writes `<name>.md`, not `SKILL.md` | The PRD's `cp skills/*/*.md` collapsed all 7 files into one. |
 | 2026-09-04 | `--antigravity` uses a marker block | Makes re-runs safe and leaves the user's own rules alone. |
 | 2026-09-04 | `.claude/settings.local.json` + headroom files gitignored | Per-machine state. The rest of `.claude/` stays trackable. |
+| 2026-09-04 | Independent repo, not a fork of `ayghri/i-have-adhd` | Upstream is a different project (output shaping, 1 skill, no npx CLI). Forking would inherit 192 unrelated commits, a logo, 7 translations, and an eval harness. Credited as prior art in the README instead. |
+| 2026-09-04 | Shared output-style block added to all 7 skills | The name is calm-adhd, but the skills only said "simple English". The block makes the constraint concrete, and a test keeps all 7 byte-identical. |
+| 2026-09-04 | Broader host support deferred | Publish and prove the npx path first. Tracked in PRD §7.1. |
 | 2026-09-04 | `--antigravity` repurposed from `.antigravity/rules.md` to `.agents/skills/` | The documented path does not exist. Antigravity reads `.agents/skills/`. Nothing was published under the old behavior. |
 | 2026-09-04 | `--continue` injects `invokable: true` | Continue does not surface a prompt as a slash command without it. |
 | 2026-09-04 | `engines.node` raised `>=16.7.0` → `>=18.0.0` | `fs.cpSync` needs 16.7, but Node 16 went EOL in 2023 and CI does not cover it. Claiming only what is tested. Revert if you need 16.x. |

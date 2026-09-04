@@ -368,15 +368,24 @@ uses, so the default install already covers it. Global skills go to
 
 ---
 
-## 7. Key Next Steps
+## 7. Next Steps
 
-1. Fork the upstream repo:
+This repository is **independent**, not a fork. It was scaffolded from this
+document. `ayghri/i-have-adhd` is credited as prior art in the README for the
+ADHD-friendly output idea, but no code, history, or files are shared with it.
 
-   ```bash
-   git clone https://github.com/ayghri/i-have-adhd.git calm-adhd-skills
-   cd calm-adhd-skills
-   ```
+Remaining before publishing:
 
-2. Save this document as `PRD.md` in the repo root.
-3. Replace the folders inside `skills/` with the 7 folders defined in [Section 4](#4-skills-specification-prompt-definitions).
-4. Update `package.json` with your package name and ensure `"bin": "./bin/cli.js"` is configured before publishing to npm.
+1. Add a `LICENSE` file with a real copyright holder.
+2. Fill in `author` and `repository` in `package.json`.
+3. Confirm `calm-adhd-skills` is free on the npm registry.
+4. Test in the real editors (Section 6). The install paths are confirmed from
+   the editors' docs, but have not been exercised by hand.
+5. `npm pack`, inspect the tarball, then publish.
+
+### 7.1 Out of scope for now
+
+Broader host support. Other projects in this space ship plugin manifests for
+Claude Code, Cursor, opencode, and the Gemini / Qwen / Kimi extension formats.
+This package targets `npx` into Zed, Antigravity, and Continue only. Revisit
+once the npx path is published and proven.

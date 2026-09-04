@@ -174,6 +174,29 @@ test('flags combine: --global --project --continue', (dir) => {
   assert.ok(fs.existsSync(path.join(home, '.continue', 'prompts', 'verify.md')));
 });
 
+test('every skill carries the same output-style block', (dir) => {
+  const skillsDir = path.join(__dirname, '..', 'skills');
+  const blocks = new Set();
+
+  for (const name of SKILL_NAMES) {
+    const content = fs.readFileSync(path.join(skillsDir, name, 'SKILL.md'), 'utf8');
+    const index = content.indexOf('Output style:');
+    assert.notStrictEqual(index, -1, `${name} is missing the output-style block`);
+    blocks.add(content.slice(index).trim());
+  }
+
+  // One distinct block means all seven are byte-identical.
+  assert.strictEqual(blocks.size, 1, `output-style block drifted: ${blocks.size} variants`);
+
+  // And it must survive the install, not just live in the source tree.
+  runCli([], { cwd: dir });
+  const installed = fs.readFileSync(
+    path.join(dir, '.agents', 'skills', 'verify', 'SKILL.md'),
+    'utf8'
+  );
+  assert.ok(installed.includes('Output style:'), 'block lost during install');
+});
+
 test('an unknown flag fails with a non-zero exit', (dir) => {
   const { status, stderr } = runCli(['--nope'], { cwd: dir });
   assert.notStrictEqual(status, 0, 'expected a non-zero exit');
